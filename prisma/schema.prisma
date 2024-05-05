@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Indicator {
+  id         String @id
+  name       String
+  type       String
+  actionType String
+
+  IndicatorOnKumite IndicatorOnKumite[]
+}
+
+model Karateca {
+  id                            Int                             @id @default(autoincrement())
+  name                          String
+  lastName                      String
+  weight                        Float
+  category                      String
+  file                          String?
+  // Relations
+  kumites                       Kumite[]
+  CompetitiveActivityOnKarateca CompetitiveActivityOnKarateca[]
+}
+
+model CompetitiveActivity {
+  id                            Int                             @id @default(autoincrement())
+  name                          String
+  desc                          String
+  type                          String
+  startDate                     DateTime?
+  endDate                       DateTime?
+  // Relations
+  Kumite                        Kumite[]
+  CompetitiveActivityOnKarateca CompetitiveActivityOnKarateca[]
+}
+
+model CompetitiveActivityOnKarateca {
+  id                  Int                 @id @default(autoincrement())
+  karateca            Karateca            @relation(fields: [karatecaId], references: [id])
+  karatecaId          Int
+  competitiveActivity CompetitiveActivity @relation(fields: [activityId], references: [id])
+  activityId          Int
+}
+
+model Kumite {
+  id                    Int                 @id @default(autoincrement())
+  name                  String
+  desc                  String
+  type                  String
+  startDate             DateTime?
+  endDate               DateTime?
+  // Relations
+  karateca              Karateca            @relation(fields: [karatecaId], references: [id])
+  karatecaId            Int
+  competitiveActivity   CompetitiveActivity @relation(fields: [competitiveActivityId], references: [id])
+  competitiveActivityId Int
+  IndicatorOnKumite     IndicatorOnKumite[]
+}
+
+model IndicatorOnKumite {
+  id          Int       @id @default(autoincrement())
+  value       String
+  // Relations
+  indicator   Indicator @relation(fields: [indicatorId], references: [id])
+  indicatorId String
+  kumite      Kumite    @relation(fields: [kumiteId], references: [id])
+  kumiteId    Int
+}
