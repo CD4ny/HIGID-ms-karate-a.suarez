@@ -1,26 +1,39 @@
 import { Injectable } from '@nestjs/common';
+
+import { PrismaService } from 'src/prisma.service';
 import { CreateKaratecaDto } from './dto/create-karateca.dto';
 import { UpdateKaratecaDto } from './dto/update-karateca.dto';
 
 @Injectable()
 export class KaratecaService {
-  create(createKaratecaDto: CreateKaratecaDto) {
-    return 'This action adds a new karateca';
+  constructor(private prisma: PrismaService) {}
+
+  async create(createKaratecaDto: CreateKaratecaDto) {
+    return await this.prisma.karateca.create({
+      data: createKaratecaDto,
+    });
   }
 
-  findAll() {
-    return `This action returns all karateca`;
+  async findAll() {
+    return await this.prisma.karateca.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} karateca`;
+  async findOne(id: number) {
+    return await this.prisma.karateca.findUnique({
+      where: { id },
+    });
   }
 
-  update(id: number, updateKaratecaDto: UpdateKaratecaDto) {
-    return `This action updates a #${id} karateca`;
+  async update(id: number, updateKaratecaDto: UpdateKaratecaDto) {
+    return await this.prisma.karateca.update({
+      where: { id },
+      data: updateKaratecaDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} karateca`;
+  async remove(ids: number[]) {
+    return await this.prisma.karateca.deleteMany({
+      where: { id: { in: ids } },
+    });
   }
 }

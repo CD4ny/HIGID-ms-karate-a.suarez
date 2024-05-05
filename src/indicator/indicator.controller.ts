@@ -29,7 +29,7 @@ export class IndicatorController {
       );
     }
 
-    return this.indicatorService.create(createIndicatorDto);
+    return await this.indicatorService.create(createIndicatorDto);
   }
 
   @Get()
@@ -48,7 +48,20 @@ export class IndicatorController {
 
   @Patch()
   async update(@Body() updateIndicatorDto: UpdateIndicatorDto) {
-    return await this.indicatorService.update(updateIndicatorDto);
+    try {
+      return await this.indicatorService.update(updateIndicatorDto);
+    } catch (error) {
+      if (error.code === 'P2025')
+        throw new HttpException(
+          'Indicador no encontrado',
+          HttpStatus.NOT_FOUND,
+        );
+
+      throw new HttpException(
+        'Error interno',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete()

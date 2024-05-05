@@ -8,8 +8,8 @@ import { UpdateIndicatorDto } from './dto/update-indicator.dto';
 export class IndicatorService {
   constructor(private prisma: PrismaService) {}
 
-  create(createIndicatorDto: CreateIndicatorDto) {
-    return this.prisma.indicator.create({
+  async create(createIndicatorDto: CreateIndicatorDto) {
+    return await this.prisma.indicator.create({
       data: createIndicatorDto,
     });
   }
