@@ -56,6 +56,20 @@ export class CompetitiveActivityService {
     } else return res;
   }
 
+  async findKaratecas(id: number) {
+    const karatecasIds =
+      await this.prisma.competitiveActivityKarateca_Kumite.findMany({
+        where: { activityId: id },
+        select: { karatecaId: true },
+      });
+
+    const karatecas = await this.prisma.karateca.findMany({
+      where: { id: { in: karatecasIds.map(({ karatecaId }) => karatecaId) } },
+    });
+
+    return karatecas;
+  }
+
   async update(
     id: number,
     updateCompetitiveActivityDto: UpdateCompetitiveActivityDto,
@@ -63,23 +77,44 @@ export class CompetitiveActivityService {
     const { desc, endDate, startDate, type, karatecasIds } =
       updateCompetitiveActivityDto;
 
-    const res = await this.prisma.competitiveActivity.update({
-      where: { id, deleted: false },
-      data: {
-        desc,
-        endDate,
-        startDate,
-        type,
-      },
-    });
-
-    if (res) {
-      await this.prisma.competitiveActivityKarateca_Kumite.deleteMany({
-        where: { karatecaId: { notIn: karatecasIds }, activityId: id },
+    return await this.prisma.$transaction(async (prisma) => {
+      const res = await prisma.competitiveActivity.update({
+        where: { id, deleted: false },
+        data: {
+          desc,
+          endDate,
+          startDate,
+          type,
+        },
       });
-    }
 
-    return res;
+      if (res) {
+        await this.prisma.competitiveActivityKarateca_Kumite.deleteMany({
+          where: { karatecaId: { notIn: karatecasIds }, activityId: id },
+        });
+
+        const existingKaratecasIds =
+          await this.prisma.competitiveActivityKarateca_Kumite.findMany({
+            where: { activityId: id },
+            select: { karatecaId: true },
+          });
+
+        const existingKaratecasIdsSet = new Set(
+          existingKaratecasIds.map(({ karatecaId }) => karatecaId),
+        );
+        const newKaratecasIds = karatecasIds
+          .filter((karatecaId) => !existingKaratecasIdsSet.has(karatecaId))
+          .map((karatecaId) => ({ activityId: id, karatecaId }));
+
+        if (newKaratecasIds.length > 0) {
+          await this.prisma.competitiveActivityKarateca_Kumite.createMany({
+            data: newKaratecasIds,
+          });
+        }
+      }
+
+      return res;
+    });
   }
 
   async remove(ids: number[]) {

@@ -47,6 +47,11 @@ export class CompetitiveActivityController {
     return res;
   }
 
+  @Get(':id/karatecas')
+  async findKaratecas(@Param('id', ParseIntPipe) id: number) {
+    return await this.competitiveActivityService.findKaratecas(id);
+  }
+
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
