@@ -27,6 +27,7 @@ model Karateca {
   id                                 Int                                  @id @default(autoincrement())
   name                               String
   lastName                           String
+  sex                                String
   weight                             Float
   category                           String
   file                               String?

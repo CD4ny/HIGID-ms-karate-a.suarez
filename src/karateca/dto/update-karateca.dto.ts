@@ -12,6 +12,10 @@ export class UpdateKaratecaDto extends PartialType(CreateKaratecaDto) {
   @IsNotEmpty()
   lastName: string;
 
+  @IsString()
+  @IsNotEmpty()
+  sex: string;
+
   @IsNumber()
   @Min(0)
   weight: number;
