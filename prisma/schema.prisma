@@ -14,59 +14,55 @@ datasource db {
 }
 
 model Indicator {
-  id         String @id
-  name       String
-  type       String
-  actionType String
-
+  id                String              @id
+  name              String
+  type              String
+  actionType        String
+  deleted           Boolean             @default(false)
+  // Relations
   IndicatorOnKumite IndicatorOnKumite[]
 }
 
 model Karateca {
-  id                            Int                             @id @default(autoincrement())
-  name                          String
-  lastName                      String
-  weight                        Float
-  category                      String
-  file                          String?
+  id                                 Int                                  @id @default(autoincrement())
+  name                               String
+  lastName                           String
+  weight                             Float
+  category                           String
+  file                               String?
+  deleted                            Boolean                              @default(false)
   // Relations
-  kumites                       Kumite[]
-  CompetitiveActivityOnKarateca CompetitiveActivityOnKarateca[]
+  CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite[]
 }
 
 model CompetitiveActivity {
-  id                            Int                             @id @default(autoincrement())
-  name                          String
-  desc                          String
-  type                          String
-  startDate                     DateTime?
-  endDate                       DateTime?
+  id                                 Int                                  @id @default(autoincrement())
+  desc                               String
+  type                               String
+  startDate                          DateTime?
+  endDate                            DateTime?
+  deleted                            Boolean                              @default(false)
   // Relations
-  Kumite                        Kumite[]
-  CompetitiveActivityOnKarateca CompetitiveActivityOnKarateca[]
+  CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite[]
 }
 
-model CompetitiveActivityOnKarateca {
+model CompetitiveActivityKarateca_Kumite {
   id                  Int                 @id @default(autoincrement())
   karateca            Karateca            @relation(fields: [karatecaId], references: [id])
   karatecaId          Int
   competitiveActivity CompetitiveActivity @relation(fields: [activityId], references: [id])
   activityId          Int
+  Kumite              Kumite[]
 }
 
 model Kumite {
-  id                    Int                 @id @default(autoincrement())
-  name                  String
-  desc                  String
-  type                  String
-  startDate             DateTime?
-  endDate               DateTime?
+  id                                 Int                                @id @default(autoincrement())
+  gi                                 String
+  deleted                            Boolean                            @default(false)
   // Relations
-  karateca              Karateca            @relation(fields: [karatecaId], references: [id])
-  karatecaId            Int
-  competitiveActivity   CompetitiveActivity @relation(fields: [competitiveActivityId], references: [id])
-  competitiveActivityId Int
-  IndicatorOnKumite     IndicatorOnKumite[]
+  IndicatorOnKumite                  IndicatorOnKumite[]
+  CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite @relation(fields: [comp_Karat_Id], references: [id])
+  comp_Karat_Id                      Int
 }
 
 model IndicatorOnKumite {

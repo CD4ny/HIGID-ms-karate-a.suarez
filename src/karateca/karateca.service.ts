@@ -15,25 +15,26 @@ export class KaratecaService {
   }
 
   async findAll() {
-    return await this.prisma.karateca.findMany();
+    return await this.prisma.karateca.findMany({ where: { deleted: false } });
   }
 
   async findOne(id: number) {
     return await this.prisma.karateca.findUnique({
-      where: { id },
+      where: { id, deleted: false },
     });
   }
 
   async update(id: number, updateKaratecaDto: UpdateKaratecaDto) {
     return await this.prisma.karateca.update({
-      where: { id },
+      where: { id, deleted: false },
       data: updateKaratecaDto,
     });
   }
 
   async remove(ids: number[]) {
-    return await this.prisma.karateca.deleteMany({
+    return await this.prisma.karateca.updateMany({
       where: { id: { in: ids } },
+      data: { deleted: true },
     });
   }
 }
