@@ -45,7 +45,7 @@ export class CompetitiveActivityService {
     if (res) {
       const karatecasIds =
         await this.prisma.competitiveActivityKarateca_Kumite.findMany({
-          where: { activityId: res.id },
+          where: { activityId: res.id, deleted: false },
           select: { karatecaId: true },
         });
 
@@ -89,13 +89,14 @@ export class CompetitiveActivityService {
       });
 
       if (res) {
-        await this.prisma.competitiveActivityKarateca_Kumite.deleteMany({
+        await prisma.competitiveActivityKarateca_Kumite.updateMany({
           where: { karatecaId: { notIn: karatecasIds }, activityId: id },
+          data: { deleted: true },
         });
 
         const existingKaratecasIds =
-          await this.prisma.competitiveActivityKarateca_Kumite.findMany({
-            where: { activityId: id },
+          await prisma.competitiveActivityKarateca_Kumite.findMany({
+            where: { activityId: id, deleted: false },
             select: { karatecaId: true },
           });
 
@@ -107,7 +108,7 @@ export class CompetitiveActivityService {
           .map((karatecaId) => ({ activityId: id, karatecaId }));
 
         if (newKaratecasIds.length > 0) {
-          await this.prisma.competitiveActivityKarateca_Kumite.createMany({
+          await prisma.competitiveActivityKarateca_Kumite.createMany({
             data: newKaratecasIds,
           });
         }
@@ -118,9 +119,18 @@ export class CompetitiveActivityService {
   }
 
   async remove(ids: number[]) {
-    return await this.prisma.competitiveActivity.updateMany({
+    const res = await this.prisma.competitiveActivity.updateMany({
       where: { id: { in: ids } },
       data: { deleted: true },
     });
+
+    if (res?.count > 0) {
+      await this.prisma.competitiveActivityKarateca_Kumite.updateMany({
+        where: { activityId: { in: ids } },
+        data: { deleted: true },
+      });
+    }
+
+    return res;
   }
 }

@@ -49,6 +49,7 @@ model CompetitiveActivity {
 
 model CompetitiveActivityKarateca_Kumite {
   id                  Int                 @id @default(autoincrement())
+  deleted             Boolean             @default(false)
   karateca            Karateca            @relation(fields: [karatecaId], references: [id])
   karatecaId          Int
   competitiveActivity CompetitiveActivity @relation(fields: [activityId], references: [id])
@@ -59,6 +60,18 @@ model CompetitiveActivityKarateca_Kumite {
 model Kumite {
   id                                 Int                                @id @default(autoincrement())
   gi                                 String
+  evaluation                         String?
+  kumiteType                         String?
+  distance                           String?
+  sectionType                        String?
+  strikeZones                        String?
+  partialTimes                       String?
+  levelOfPreparation                 String?
+  motorSequence                      String?
+  kumiteEnding                       String?
+  informalWarnings                   String?
+  officialWarnings                   String?
+  penalties                          String?
   deleted                            Boolean                            @default(false)
   // Relations
   IndicatorOnKumite                  IndicatorOnKumite[]
@@ -68,7 +81,8 @@ model Kumite {
 
 model IndicatorOnKumite {
   id          Int       @id @default(autoincrement())
-  value       String
+  value       String?
+  deleted     Boolean   @default(false)
   // Relations
   indicator   Indicator @relation(fields: [indicatorId], references: [id])
   indicatorId String
