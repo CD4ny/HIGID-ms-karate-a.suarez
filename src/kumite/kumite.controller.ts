@@ -13,6 +13,7 @@ import {
 import { KumiteService } from './kumite.service';
 import { CreateKumiteDto } from './dto/create-kumite.dto';
 import { UpdateKumiteDto } from './dto/update-kumite.dto';
+import { EvaluateKumiteDto } from './dto/evaluate-kuimte.dto';
 
 @Controller('kumite')
 export class KumiteController {
@@ -21,6 +22,11 @@ export class KumiteController {
   @Post()
   async create(@Body() createKumiteDto: CreateKumiteDto) {
     return await this.kumiteService.create(createKumiteDto);
+  }
+
+  @Get(':kumiteId/indicators')
+  async getIndicators(@Param('kumiteId', ParseIntPipe) kumiteId: number) {
+    return await this.kumiteService.findIndicatorsByKumiteId(kumiteId);
   }
 
   @Get(':activityId/:karatecaId')
@@ -40,6 +46,14 @@ export class KumiteController {
     }
 
     return res;
+  }
+
+  @Patch(':id/evaluate')
+  async evaluate(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() evaluateKumiteDto: EvaluateKumiteDto,
+  ) {
+    return await this.kumiteService.evaluate(id, evaluateKumiteDto);
   }
 
   @Patch(':id')

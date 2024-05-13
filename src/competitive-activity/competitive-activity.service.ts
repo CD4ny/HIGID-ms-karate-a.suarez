@@ -63,6 +63,7 @@ export class CompetitiveActivityService {
         select: { karatecaId: true },
       });
 
+    // Here the deleted field is not checked because it needs to return the karatecas even if they are deleted
     const karatecas = await this.prisma.karateca.findMany({
       where: { id: { in: karatecasIds.map(({ karatecaId }) => karatecaId) } },
     });
