@@ -16,15 +16,16 @@ class Indicator {
 }
 
 export class EvaluateKumiteDto {
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => Indicator)
-  indicators: Indicator[];
-
   @IsString()
   @IsNotEmpty()
   @IsOptional()
   evaluation: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Indicator)
+  @IsOptional()
+  indicators: Indicator[];
 
   @IsString()
   @IsNotEmpty()

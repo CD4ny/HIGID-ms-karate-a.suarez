@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateKumiteDto {
   @IsNumber()
@@ -14,9 +14,4 @@ export class CreateKumiteDto {
 
   @IsString({ each: true })
   indicators: string[];
-
-  @IsString()
-  @IsNotEmpty()
-  @IsOptional()
-  evaluation: string;
 }

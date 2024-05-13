@@ -87,35 +87,44 @@ export class KumiteService {
 
   async evaluate(id: number, evaluateKumiteDto: EvaluateKumiteDto) {
     return await this.prisma.$transaction(async (prisma) => {
-      const { indicators, ...rest } = evaluateKumiteDto;
-      const res = await this.prisma.kumite.update({
-        where: { id, deleted: false },
-        data: rest,
-      });
-
-      if (res) {
-        const indicatorsOnKumiteIds = await prisma.indicatorOnKumite.findMany({
-          where: { kumiteId: id, deleted: false },
-          select: { id: true, indicatorId: true, kumiteId: true },
+      const { indicators, evaluation, ...rest } = evaluateKumiteDto;
+      if (evaluation) {
+        await prisma.kumite.update({
+          where: { id, deleted: false },
+          data: { evaluation },
+        });
+      } else {
+        const res = await this.prisma.kumite.update({
+          where: { id, deleted: false },
+          data: rest,
         });
 
-        const parsedIndicatorOnKumite = {};
-        for (const item of indicatorsOnKumiteIds) {
-          parsedIndicatorOnKumite[item.indicatorId + item.kumiteId] = item.id;
-        }
+        if (res) {
+          const indicatorsOnKumiteIds = await prisma.indicatorOnKumite.findMany(
+            {
+              where: { kumiteId: id, deleted: false },
+              select: { id: true, indicatorId: true, kumiteId: true },
+            },
+          );
 
-        for (const indicator of indicators) {
-          await prisma.indicatorOnKumite.update({
-            where: {
-              id: parsedIndicatorOnKumite[indicator.id + id],
-              kumiteId: id,
-              indicatorId: indicator.id,
-              deleted: false,
-            },
-            data: {
-              value: indicator.value,
-            },
-          });
+          const parsedIndicatorOnKumite = {};
+          for (const item of indicatorsOnKumiteIds) {
+            parsedIndicatorOnKumite[item.indicatorId + item.kumiteId] = item.id;
+          }
+
+          for (const indicator of indicators) {
+            await prisma.indicatorOnKumite.update({
+              where: {
+                id: parsedIndicatorOnKumite[indicator.id + id],
+                kumiteId: id,
+                indicatorId: indicator.id,
+                deleted: false,
+              },
+              data: {
+                value: indicator.value,
+              },
+            });
+          }
         }
       }
     });

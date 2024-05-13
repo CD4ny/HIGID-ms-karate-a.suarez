@@ -53,6 +53,13 @@ export class KumiteController {
     @Param('id', ParseIntPipe) id: number,
     @Body() evaluateKumiteDto: EvaluateKumiteDto,
   ) {
+    const { evaluation, indicators } = evaluateKumiteDto;
+    if (!evaluation && !indicators)
+      throw new HttpException(
+        'Indicators are required',
+        HttpStatus.BAD_REQUEST,
+      );
+
     return await this.kumiteService.evaluate(id, evaluateKumiteDto);
   }
 
