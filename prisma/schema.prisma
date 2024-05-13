@@ -63,7 +63,7 @@ model Kumite {
   evaluation                         String?
   kumiteType                         String?
   distance                           String?
-  sectionType                        String?
+  sequenceType                       String?
   strikeZones                        String?
   partialTimes                       String?
   levelOfPreparation                 String?

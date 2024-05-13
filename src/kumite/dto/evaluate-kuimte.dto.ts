@@ -39,7 +39,7 @@ export class EvaluateKumiteDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  sectionType: string;
+  sequenceType: string;
 
   @IsString()
   @IsNotEmpty()
