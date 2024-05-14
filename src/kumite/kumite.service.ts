@@ -98,14 +98,6 @@ export class KumiteService {
       });
 
       const dataToReturn = [];
-      // indicators.forEach((indicator) => {
-      //   const { value, deleted } = res.find(
-      //     ({ indicatorId }) => indicatorId === indicator.id,
-      //   );
-
-      //   if (!deleted) dataToReturn.push({ ...indicator, value });
-      // });
-
       res.forEach((item) => {
         const indicator = indicators.find(
           (indicator) => indicator.id === item.indicatorId,

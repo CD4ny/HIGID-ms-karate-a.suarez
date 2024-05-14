@@ -57,41 +57,75 @@ export class CompetitiveActivityService {
   }
 
   async findKaratecas(id: number) {
-    const karatecasIds =
-      await this.prisma.competitiveActivityKarateca_Kumite.findMany({
-        where: { activityId: id },
-        select: { karatecaId: true },
-      });
-
-    // Here the deleted field is not checked because it needs to return the karatecas even if they are deleted
-    const karatecas = await this.prisma.karateca.findMany({
-      where: { id: { in: karatecasIds.map(({ karatecaId }) => karatecaId) } },
+    const res = await this.prisma.competitiveActivityKarateca_Kumite.findMany({
+      where: { activityId: id },
+      select: { karatecaId: true, deleted: true },
     });
 
-    return karatecas;
+    if (res.length > 0) {
+      const karatecasIds = res.map(({ karatecaId }) => karatecaId);
+
+      const karatecas = await this.prisma.karateca.findMany({
+        where: { id: { in: karatecasIds } },
+      });
+
+      const dataToReturn = [];
+
+      res.forEach((item) => {
+        const karateca = karatecas.find(
+          (karateca) => karateca.id === item.karatecaId,
+        );
+
+        if (karateca && !item.deleted) {
+          dataToReturn.push(karateca);
+        }
+      });
+
+      console.log({ dataToReturn, karatecasIds, karatecas, res });
+
+      return dataToReturn;
+    }
+
+    return res;
   }
 
   async update(
     id: number,
     updateCompetitiveActivityDto: UpdateCompetitiveActivityDto,
   ) {
-    const { desc, endDate, startDate, type, karatecasIds } =
-      updateCompetitiveActivityDto;
-
     return await this.prisma.$transaction(async (prisma) => {
+      const { karatecasIds, ...rest } = updateCompetitiveActivityDto;
+
       const res = await prisma.competitiveActivity.update({
         where: { id, deleted: false },
-        data: {
-          desc,
-          endDate,
-          startDate,
-          type,
-        },
+        data: rest,
       });
 
       if (res) {
+        const karatecasInCompAct =
+          await prisma.competitiveActivityKarateca_Kumite.findMany({
+            where: { activityId: id, deleted: false },
+            select: { karatecaId: true },
+          });
+
+        const deletedKaratecasIds = await prisma.karateca.findMany({
+          where: {
+            id: { in: karatecasInCompAct.map((item) => item.karatecaId) },
+            deleted: true,
+          },
+          select: { id: true },
+        });
+
         await prisma.competitiveActivityKarateca_Kumite.updateMany({
-          where: { karatecaId: { notIn: karatecasIds }, activityId: id },
+          where: {
+            karatecaId: {
+              notIn: [
+                ...karatecasIds,
+                ...deletedKaratecasIds.map((item) => item.id),
+              ],
+            },
+            activityId: id,
+          },
           data: { deleted: true },
         });
 
