@@ -5,11 +5,12 @@ import {
   ValidateNested,
   IsOptional,
   IsString,
+  IsNumber,
 } from 'class-validator';
 
 class Indicator {
-  @IsString()
-  id: string;
+  @IsNumber()
+  id: number;
 
   @IsString()
   value: string;

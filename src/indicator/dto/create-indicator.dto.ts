@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class CreateIndicatorDto {
   @IsNotEmpty()
   @IsString()
-  id: string;
+  code: string;
 
   @IsNotEmpty()
   @IsString()

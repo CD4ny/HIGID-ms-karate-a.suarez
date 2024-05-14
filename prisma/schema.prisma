@@ -14,7 +14,8 @@ datasource db {
 }
 
 model Indicator {
-  id                String              @id
+  id                Int                 @id @default(autoincrement())
+  code              String
   name              String
   type              String
   actionType        String
@@ -85,7 +86,7 @@ model IndicatorOnKumite {
   deleted     Boolean   @default(false)
   // Relations
   indicator   Indicator @relation(fields: [indicatorId], references: [id])
-  indicatorId String
+  indicatorId Int
   kumite      Kumite    @relation(fields: [kumiteId], references: [id])
   kumiteId    Int
 }

@@ -18,20 +18,20 @@ export class IndicatorService {
     return await this.prisma.indicator.findMany({ where: { deleted: false } });
   }
 
-  async findOne(id: string) {
-    return await this.prisma.indicator.findUnique({
-      where: { id, deleted: false },
+  async findOne(code: string) {
+    return await this.prisma.indicator.findFirst({
+      where: { code, deleted: false },
     });
   }
 
-  async update(updateIndicatorDto: UpdateIndicatorDto) {
+  async update(id: number, updateIndicatorDto: UpdateIndicatorDto) {
     return await this.prisma.indicator.update({
-      where: { id: updateIndicatorDto.id, deleted: false },
+      where: { id, deleted: false },
       data: updateIndicatorDto,
     });
   }
 
-  async remove(ids: string[]) {
+  async remove(ids: number[]) {
     return await this.prisma.indicator.updateMany({
       where: { id: { in: ids } },
       data: { deleted: true },

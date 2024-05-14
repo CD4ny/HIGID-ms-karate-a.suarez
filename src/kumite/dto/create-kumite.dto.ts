@@ -12,6 +12,6 @@ export class CreateKumiteDto {
   @IsNotEmpty()
   gi: string;
 
-  @IsString({ each: true })
-  indicators: string[];
+  @IsNumber({}, { each: true })
+  indicators: number[];
 }

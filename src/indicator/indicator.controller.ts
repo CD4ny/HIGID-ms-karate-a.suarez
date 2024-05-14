@@ -8,6 +8,7 @@ import {
   Delete,
   HttpStatus,
   HttpException,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { IndicatorService } from './indicator.service';
@@ -20,11 +21,11 @@ export class IndicatorController {
 
   @Post()
   async create(@Body() createIndicatorDto: CreateIndicatorDto) {
-    const { id } = createIndicatorDto;
-    const indicator = await this.indicatorService.findOne(id);
+    const { code } = createIndicatorDto;
+    const indicator = await this.indicatorService.findOne(code);
     if (indicator) {
       throw new HttpException(
-        'Un indicador con este ID ya existe',
+        'Un indicador con este código ya existe',
         HttpStatus.CONFLICT,
       );
     }
@@ -37,19 +38,24 @@ export class IndicatorController {
     return await this.indicatorService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const res = await this.indicatorService.findOne(id);
+  @Get(':code')
+  async findOne(@Param('code') code: string) {
+    console.log('code', code);
+
+    const res = await this.indicatorService.findOne(code);
     if (!res) {
       throw new HttpException('Indicador no encontrado', HttpStatus.NOT_FOUND);
     }
     return res;
   }
 
-  @Patch()
-  async update(@Body() updateIndicatorDto: UpdateIndicatorDto) {
+  @Patch(':id')
+  async update(
+    @Param('id', ParseIntPipe) id,
+    @Body() updateIndicatorDto: UpdateIndicatorDto,
+  ) {
     try {
-      return await this.indicatorService.update(updateIndicatorDto);
+      return await this.indicatorService.update(id, updateIndicatorDto);
     } catch (error) {
       if (error.code === 'P2025')
         throw new HttpException(
@@ -65,7 +71,7 @@ export class IndicatorController {
   }
 
   @Delete()
-  async remove(@Body('ids') ids: string[]) {
+  async remove(@Body('ids') ids: number[]) {
     return await this.indicatorService.remove(ids);
   }
 }

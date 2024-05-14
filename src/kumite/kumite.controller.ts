@@ -13,7 +13,7 @@ import {
 import { KumiteService } from './kumite.service';
 import { CreateKumiteDto } from './dto/create-kumite.dto';
 import { UpdateKumiteDto } from './dto/update-kumite.dto';
-import { EvaluateKumiteDto } from './dto/evaluate-kuimte.dto';
+import { EvaluateKumiteDto } from './dto/evaluate-kumite.dto';
 
 @Controller('kumite')
 export class KumiteController {

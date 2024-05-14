@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateKumiteDto } from './dto/create-kumite.dto';
 import { UpdateKumiteDto } from './dto/update-kumite.dto';
-import { EvaluateKumiteDto } from './dto/evaluate-kuimte.dto';
+import { EvaluateKumiteDto } from './dto/evaluate-kumite.dto';
 
 @Injectable()
 export class KumiteService {
@@ -78,16 +78,54 @@ export class KumiteService {
 
   async findIndicatorsByKumiteId(kumiteId: number) {
     const res = await this.prisma.indicatorOnKumite.findMany({
-      where: { kumiteId, deleted: false },
-      select: { indicatorId: true, value: true },
+      where: { kumiteId },
+      select: { indicatorId: true, value: true, deleted: true },
     });
 
-    return res.map(({ indicatorId, value }) => ({ id: indicatorId, value }));
+    if (res.length > 0) {
+      const indicatorsIds = res.map(({ indicatorId }) => indicatorId);
+
+      const indicators = await this.prisma.indicator.findMany({
+        where: { id: { in: indicatorsIds } },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          type: true,
+          actionType: true,
+          deleted: true,
+        },
+      });
+
+      const dataToReturn = [];
+      // indicators.forEach((indicator) => {
+      //   const { value, deleted } = res.find(
+      //     ({ indicatorId }) => indicatorId === indicator.id,
+      //   );
+
+      //   if (!deleted) dataToReturn.push({ ...indicator, value });
+      // });
+
+      res.forEach((item) => {
+        const indicator = indicators.find(
+          (indicator) => indicator.id === item.indicatorId,
+        );
+
+        if (indicator && !item.deleted) {
+          dataToReturn.push({ ...indicator, value: item.value });
+        }
+      });
+
+      return dataToReturn;
+    }
+
+    return res;
   }
 
   async evaluate(id: number, evaluateKumiteDto: EvaluateKumiteDto) {
     return await this.prisma.$transaction(async (prisma) => {
       const { indicators, evaluation, ...rest } = evaluateKumiteDto;
+
       if (evaluation) {
         await prisma.kumite.update({
           where: { id, deleted: false },
@@ -109,13 +147,22 @@ export class KumiteService {
 
           const parsedIndicatorOnKumite = {};
           for (const item of indicatorsOnKumiteIds) {
-            parsedIndicatorOnKumite[item.indicatorId + item.kumiteId] = item.id;
+            parsedIndicatorOnKumite[
+              item.indicatorId.toString() + item.kumiteId.toString()
+            ] = item.id;
           }
 
-          for (const indicator of indicators) {
+          const cleanedIndicators = indicators.filter(
+            (indicator) =>
+              parsedIndicatorOnKumite[indicator.id.toString() + id.toString()],
+          );
+
+          for (const indicator of cleanedIndicators) {
             await prisma.indicatorOnKumite.update({
               where: {
-                id: parsedIndicatorOnKumite[indicator.id + id],
+                id: parsedIndicatorOnKumite[
+                  indicator.id.toString() + id.toString()
+                ],
                 kumiteId: id,
                 indicatorId: indicator.id,
                 deleted: false,
