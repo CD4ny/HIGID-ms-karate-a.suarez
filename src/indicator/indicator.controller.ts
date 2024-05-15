@@ -40,8 +40,6 @@ export class IndicatorController {
 
   @Get(':code')
   async findOne(@Param('code') code: string) {
-    console.log('code', code);
-
     const res = await this.indicatorService.findOne(code);
     if (!res) {
       throw new HttpException('Indicador no encontrado', HttpStatus.NOT_FOUND);

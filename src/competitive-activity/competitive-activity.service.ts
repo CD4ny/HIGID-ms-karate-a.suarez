@@ -81,8 +81,6 @@ export class CompetitiveActivityService {
         }
       });
 
-      console.log({ dataToReturn, karatecasIds, karatecas, res });
-
       return dataToReturn;
     }
 
