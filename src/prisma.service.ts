@@ -6,8 +6,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   async onModuleInit() {
     try {
       await this.$connect();
-      console.info('Database connected');
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Database connection failed: \n', error.message);
     }
   }
