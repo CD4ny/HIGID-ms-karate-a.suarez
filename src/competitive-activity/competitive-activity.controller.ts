@@ -14,6 +14,8 @@ import {
 import { CompetitiveActivityService } from './competitive-activity.service';
 import { CreateCompetitiveActivityDto } from './dto/create-competitive-activity.dto';
 import { UpdateCompetitiveActivityDto } from './dto/update-competitive-activity.dto';
+import { AppDto } from 'src/app.dto';
+import { DeleteCompetitiveActivityDto } from './dto/delete-competitive-activity.dto';
 
 @Controller('competitive-activity')
 export class CompetitiveActivityController {
@@ -31,13 +33,13 @@ export class CompetitiveActivityController {
   }
 
   @Get()
-  async findAll() {
-    return await this.competitiveActivityService.findAll();
+  async findAll(@Body() body: AppDto) {
+    return await this.competitiveActivityService.findAll(body.userId);
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const res = await this.competitiveActivityService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number, @Body() body: AppDto) {
+    const res = await this.competitiveActivityService.findOne(id, body.userId);
     if (!res) {
       throw new HttpException(
         'Competitive activity not found',
@@ -48,8 +50,11 @@ export class CompetitiveActivityController {
   }
 
   @Get(':id/karatecas')
-  async findKaratecas(@Param('id', ParseIntPipe) id: number) {
-    return await this.competitiveActivityService.findKaratecas(id);
+  async findKaratecas(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: AppDto,
+  ) {
+    return await this.competitiveActivityService.findKaratecas(id, body.userId);
   }
 
   @Patch(':id')
@@ -64,7 +69,7 @@ export class CompetitiveActivityController {
   }
 
   @Delete()
-  async remove(@Body('ids') ids: number[]) {
-    return await this.competitiveActivityService.remove(ids);
+  async remove(@Body() deleteComActDto: DeleteCompetitiveActivityDto) {
+    return await this.competitiveActivityService.remove(deleteComActDto);
   }
 }

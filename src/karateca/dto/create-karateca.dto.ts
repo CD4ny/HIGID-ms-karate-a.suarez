@@ -1,5 +1,7 @@
+import { PartialType } from '@nestjs/mapped-types';
 import { IsNotEmpty, IsString, IsNumber, Min } from 'class-validator';
-export class CreateKaratecaDto {
+import { AppDto } from 'src/app.dto';
+export class CreateKaratecaDto extends PartialType(AppDto) {
   @IsString()
   @IsNotEmpty()
   name: string;

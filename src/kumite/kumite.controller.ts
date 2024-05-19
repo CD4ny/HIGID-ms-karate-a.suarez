@@ -14,6 +14,8 @@ import { KumiteService } from './kumite.service';
 import { CreateKumiteDto } from './dto/create-kumite.dto';
 import { UpdateKumiteDto } from './dto/update-kumite.dto';
 import { EvaluateKumiteDto } from './dto/evaluate-kumite.dto';
+import { AppDto } from 'src/app.dto';
+import { DeleteKumiteDto } from './dto/delete-kumite.dto';
 
 @Controller('kumite')
 export class KumiteController {
@@ -25,21 +27,35 @@ export class KumiteController {
   }
 
   @Get(':kumiteId/indicators')
-  async getIndicators(@Param('kumiteId', ParseIntPipe) kumiteId: number) {
-    return await this.kumiteService.findIndicatorsByKumiteId(kumiteId);
+  async getIndicators(
+    @Param('kumiteId', ParseIntPipe) kumiteId: number,
+    @Body() body: AppDto,
+  ) {
+    return await this.kumiteService.findIndicatorsByKumiteId(
+      kumiteId,
+      body.userId,
+    );
   }
 
   @Get(':activityId/:karatecaId')
   async findAll(
     @Param('activityId', ParseIntPipe) activityId: number,
     @Param('karatecaId', ParseIntPipe) karatecaId: number,
+    @Body() body: AppDto,
   ) {
-    return await this.kumiteService.findAll(activityId, karatecaId);
+    return await this.kumiteService.findAll(
+      activityId,
+      karatecaId,
+      body.userId,
+    );
   }
 
   @Get(':kumiteId')
-  async findOne(@Param('kumiteId', ParseIntPipe) kumiteId: number) {
-    const res = await this.kumiteService.findOne(kumiteId);
+  async findOne(
+    @Param('kumiteId', ParseIntPipe) kumiteId: number,
+    @Body() body: AppDto,
+  ) {
+    const res = await this.kumiteService.findOne(kumiteId, body.userId);
 
     if (!res) {
       throw new HttpException('Kumite not found', HttpStatus.NOT_FOUND);
@@ -72,7 +88,7 @@ export class KumiteController {
   }
 
   @Delete()
-  async remove(@Body('ids') ids: number[]) {
-    return await this.kumiteService.remove(ids);
+  async remove(@Body() deleteKumiteDto: DeleteKumiteDto) {
+    return await this.kumiteService.remove(deleteKumiteDto);
   }
 }

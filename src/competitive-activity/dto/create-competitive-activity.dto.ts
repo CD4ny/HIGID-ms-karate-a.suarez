@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
 import {
   IsNotEmpty,
   IsString,
@@ -5,8 +6,9 @@ import {
   IsOptional,
   MaxLength,
 } from 'class-validator';
+import { AppDto } from 'src/app.dto';
 
-export class CreateCompetitiveActivityDto {
+export class CreateCompetitiveActivityDto extends PartialType(AppDto) {
   @IsOptional()
   @IsString()
   @MaxLength(200)

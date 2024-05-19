@@ -14,6 +14,8 @@ import {
 import { IndicatorService } from './indicator.service';
 import { CreateIndicatorDto } from './dto/create-indicator.dto';
 import { UpdateIndicatorDto } from './dto/update-indicator.dto';
+import { AppDto } from 'src/app.dto';
+import { DeleteIndicatorDto } from './dto/delete-indicator.dto';
 
 @Controller('indicator')
 export class IndicatorController {
@@ -21,8 +23,8 @@ export class IndicatorController {
 
   @Post()
   async create(@Body() createIndicatorDto: CreateIndicatorDto) {
-    const { code } = createIndicatorDto;
-    const indicator = await this.indicatorService.findOne(code);
+    const { code, userId } = createIndicatorDto;
+    const indicator = await this.indicatorService.findOne(code, userId);
     if (indicator) {
       throw new HttpException(
         'Un indicador con este código ya existe',
@@ -34,13 +36,13 @@ export class IndicatorController {
   }
 
   @Get()
-  async findAll() {
-    return await this.indicatorService.findAll();
+  async findAll(@Body() body: AppDto) {
+    return await this.indicatorService.findAll(body.userId);
   }
 
   @Get(':code')
-  async findOne(@Param('code') code: string) {
-    const res = await this.indicatorService.findOne(code);
+  async findOne(@Param('code') code: string, @Body() body: AppDto) {
+    const res = await this.indicatorService.findOne(code, body.userId);
     if (!res) {
       throw new HttpException('Indicador no encontrado', HttpStatus.NOT_FOUND);
     }
@@ -69,7 +71,7 @@ export class IndicatorController {
   }
 
   @Delete()
-  async remove(@Body('ids') ids: number[]) {
-    return await this.indicatorService.remove(ids);
+  async remove(@Body() deleteIndicatorsDto: DeleteIndicatorDto) {
+    return await this.indicatorService.remove(deleteIndicatorsDto);
   }
 }

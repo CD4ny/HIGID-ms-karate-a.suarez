@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
@@ -7,6 +8,7 @@ import {
   IsString,
   IsNumber,
 } from 'class-validator';
+import { AppDto } from 'src/app.dto';
 
 class Indicator {
   @IsNumber()
@@ -16,7 +18,7 @@ class Indicator {
   value: string;
 }
 
-export class EvaluateKumiteDto {
+export class EvaluateKumiteDto extends PartialType(AppDto) {
   @IsString()
   @IsNotEmpty()
   @IsOptional()

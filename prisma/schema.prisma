@@ -19,6 +19,7 @@ model Indicator {
   name              String
   type              String
   actionType        String
+  owner             String
   deleted           Boolean             @default(false)
   // Relations
   IndicatorOnKumite IndicatorOnKumite[]
@@ -32,6 +33,7 @@ model Karateca {
   weight                             Float
   category                           String
   file                               String?
+  owner                              String
   deleted                            Boolean                              @default(false)
   // Relations
   CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite[]
@@ -43,6 +45,7 @@ model CompetitiveActivity {
   type                               String
   startDate                          DateTime?
   endDate                            DateTime?
+  owner                              String
   deleted                            Boolean                              @default(false)
   // Relations
   CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite[]
@@ -50,6 +53,7 @@ model CompetitiveActivity {
 
 model CompetitiveActivityKarateca_Kumite {
   id                  Int                 @id @default(autoincrement())
+  owner               String
   deleted             Boolean             @default(false)
   karateca            Karateca            @relation(fields: [karatecaId], references: [id])
   karatecaId          Int
@@ -73,6 +77,7 @@ model Kumite {
   informalWarnings                   String?
   officialWarnings                   String?
   penalties                          String?
+  owner                              String
   deleted                            Boolean                            @default(false)
   // Relations
   IndicatorOnKumite                  IndicatorOnKumite[]
@@ -83,6 +88,7 @@ model Kumite {
 model IndicatorOnKumite {
   id          Int       @id @default(autoincrement())
   value       String?
+  owner       String
   deleted     Boolean   @default(false)
   // Relations
   indicator   Indicator @relation(fields: [indicatorId], references: [id])

@@ -14,6 +14,8 @@ import {
 import { KaratecaService } from './karateca.service';
 import { CreateKaratecaDto } from './dto/create-karateca.dto';
 import { UpdateKaratecaDto } from './dto/update-karateca.dto';
+import { AppDto } from 'src/app.dto';
+import { DeleteKaratecaDto } from './dto/delete-karateca.dto';
 
 @Controller('karateca')
 export class KaratecaController {
@@ -25,13 +27,13 @@ export class KaratecaController {
   }
 
   @Get()
-  async findAll() {
-    return await this.karatecaService.findAll();
+  async findAll(@Body() body: AppDto) {
+    return await this.karatecaService.findAll(body.userId);
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const res = await this.karatecaService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number, @Body() body: AppDto) {
+    const res = await this.karatecaService.findOne(id, body.userId);
     if (!res) {
       throw new HttpException('Karateca no encontrado', HttpStatus.NOT_FOUND);
     }
@@ -57,7 +59,7 @@ export class KaratecaController {
   }
 
   @Delete()
-  async remove(@Body('ids') ids: number[]) {
-    return await this.karatecaService.remove(ids);
+  async remove(@Body() deleteKaratecaDto: DeleteKaratecaDto) {
+    return await this.karatecaService.remove(deleteKaratecaDto);
   }
 }

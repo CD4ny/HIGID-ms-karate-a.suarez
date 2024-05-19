@@ -3,13 +3,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateCompetitiveActivityDto } from './dto/create-competitive-activity.dto';
 import { UpdateCompetitiveActivityDto } from './dto/update-competitive-activity.dto';
+import { DeleteCompetitiveActivityDto } from './dto/delete-competitive-activity.dto';
 
 @Injectable()
 export class CompetitiveActivityService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCompetitiveActivityDto: CreateCompetitiveActivityDto) {
-    const { desc, endDate, startDate, type, karatecasIds } =
+    const { desc, endDate, startDate, type, userId, karatecasIds } =
       createCompetitiveActivityDto;
 
     const { id: compActivityId } = await this.prisma.competitiveActivity.create(
@@ -19,6 +20,7 @@ export class CompetitiveActivityService {
           endDate,
           startDate,
           type,
+          owner: userId,
         },
       },
     );
@@ -27,19 +29,20 @@ export class CompetitiveActivityService {
       data: karatecasIds.map((karatecaId) => ({
         activityId: compActivityId,
         karatecaId,
+        owner: userId,
       })),
     });
   }
 
-  async findAll() {
+  async findAll(owner: string) {
     return await this.prisma.competitiveActivity.findMany({
-      where: { deleted: false },
+      where: { deleted: false, owner },
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, owner: string) {
     const res = await this.prisma.competitiveActivity.findUnique({
-      where: { id, deleted: false },
+      where: { id, deleted: false, owner },
     });
 
     if (res) {
@@ -56,9 +59,9 @@ export class CompetitiveActivityService {
     } else return res;
   }
 
-  async findKaratecas(id: number) {
+  async findKaratecas(id: number, owner: string) {
     const res = await this.prisma.competitiveActivityKarateca_Kumite.findMany({
-      where: { activityId: id },
+      where: { activityId: id, owner },
       select: { karatecaId: true, deleted: true },
     });
 
@@ -66,7 +69,7 @@ export class CompetitiveActivityService {
       const karatecasIds = res.map(({ karatecaId }) => karatecaId);
 
       const karatecas = await this.prisma.karateca.findMany({
-        where: { id: { in: karatecasIds } },
+        where: { id: { in: karatecasIds }, owner },
       });
 
       const dataToReturn = [];
@@ -92,17 +95,17 @@ export class CompetitiveActivityService {
     updateCompetitiveActivityDto: UpdateCompetitiveActivityDto,
   ) {
     return await this.prisma.$transaction(async (prisma) => {
-      const { karatecasIds, ...rest } = updateCompetitiveActivityDto;
+      const { karatecasIds, userId, ...rest } = updateCompetitiveActivityDto;
 
       const res = await prisma.competitiveActivity.update({
-        where: { id, deleted: false },
+        where: { id, deleted: false, owner: userId },
         data: rest,
       });
 
       if (res) {
         const karatecasInCompAct =
           await prisma.competitiveActivityKarateca_Kumite.findMany({
-            where: { activityId: id, deleted: false },
+            where: { activityId: id, deleted: false, owner: userId },
             select: { karatecaId: true },
           });
 
@@ -110,12 +113,14 @@ export class CompetitiveActivityService {
           where: {
             id: { in: karatecasInCompAct.map((item) => item.karatecaId) },
             deleted: true,
+            owner: userId,
           },
           select: { id: true },
         });
 
         await prisma.competitiveActivityKarateca_Kumite.updateMany({
           where: {
+            owner: userId,
             karatecaId: {
               notIn: [
                 ...karatecasIds,
@@ -129,7 +134,7 @@ export class CompetitiveActivityService {
 
         const existingKaratecasIds =
           await prisma.competitiveActivityKarateca_Kumite.findMany({
-            where: { activityId: id, deleted: false },
+            where: { activityId: id, deleted: false, owner: userId },
             select: { karatecaId: true },
           });
 
@@ -138,7 +143,7 @@ export class CompetitiveActivityService {
         );
         const newKaratecasIds = karatecasIds
           .filter((karatecaId) => !existingKaratecasIdsSet.has(karatecaId))
-          .map((karatecaId) => ({ activityId: id, karatecaId }));
+          .map((karatecaId) => ({ activityId: id, karatecaId, owner: userId }));
 
         if (newKaratecasIds.length > 0) {
           await prisma.competitiveActivityKarateca_Kumite.createMany({
@@ -151,15 +156,16 @@ export class CompetitiveActivityService {
     });
   }
 
-  async remove(ids: number[]) {
+  async remove(deleteComActDto: DeleteCompetitiveActivityDto) {
+    const { ids, userId } = deleteComActDto;
     const res = await this.prisma.competitiveActivity.updateMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, owner: userId },
       data: { deleted: true },
     });
 
     if (res?.count > 0) {
       await this.prisma.competitiveActivityKarateca_Kumite.updateMany({
-        where: { activityId: { in: ids } },
+        where: { activityId: { in: ids }, owner: userId },
         data: { deleted: true },
       });
     }

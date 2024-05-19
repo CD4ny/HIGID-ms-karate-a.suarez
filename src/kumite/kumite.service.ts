@@ -4,13 +4,14 @@ import { PrismaService } from 'src/prisma.service';
 import { CreateKumiteDto } from './dto/create-kumite.dto';
 import { UpdateKumiteDto } from './dto/update-kumite.dto';
 import { EvaluateKumiteDto } from './dto/evaluate-kumite.dto';
+import { DeleteKumiteDto } from './dto/delete-kumite.dto';
 
 @Injectable()
 export class KumiteService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createKumiteDto: CreateKumiteDto) {
-    const { indicators, gi, compActivityId, selectedKaratecaId } =
+    const { indicators, gi, compActivityId, selectedKaratecaId, userId } =
       createKumiteDto;
 
     return await this.prisma.$transaction(async (prisma) => {
@@ -19,12 +20,14 @@ export class KumiteService {
           where: {
             activityId: compActivityId,
             karatecaId: selectedKaratecaId,
+            owner: userId,
           },
         });
 
       const { id: kumiteId } = await prisma.kumite.create({
         data: {
           gi,
+          owner: userId,
           comp_Karat_Id: compActKaratId,
         },
       });
@@ -33,17 +36,19 @@ export class KumiteService {
         data: indicators.map((indicator) => ({
           kumiteId,
           indicatorId: indicator,
+          owner: userId,
         })),
       });
     });
   }
 
-  async findAll(activityId, karatecaId) {
+  async findAll(activityId, karatecaId, owner: string) {
     const { id: compActKaratId } =
       await this.prisma.competitiveActivityKarateca_Kumite.findFirst({
         where: {
           activityId,
           karatecaId,
+          owner,
         },
       });
 
@@ -51,6 +56,7 @@ export class KumiteService {
       where: {
         comp_Karat_Id: compActKaratId,
         deleted: false,
+        owner,
       },
       orderBy: {
         id: 'asc',
@@ -58,14 +64,14 @@ export class KumiteService {
     });
   }
 
-  async findOne(kumiteId: number) {
+  async findOne(kumiteId: number, owner: string) {
     const res = await this.prisma.kumite.findFirst({
-      where: { id: kumiteId, deleted: false },
+      where: { id: kumiteId, deleted: false, owner },
     });
 
     if (res) {
       const indicatorsIds = await this.prisma.indicatorOnKumite.findMany({
-        where: { kumiteId: res.id, deleted: false },
+        where: { kumiteId: res.id, deleted: false, owner },
         select: { indicatorId: true },
       });
 
@@ -76,9 +82,9 @@ export class KumiteService {
     } else return res;
   }
 
-  async findIndicatorsByKumiteId(kumiteId: number) {
+  async findIndicatorsByKumiteId(kumiteId: number, owner: string) {
     const res = await this.prisma.indicatorOnKumite.findMany({
-      where: { kumiteId },
+      where: { kumiteId, owner },
       select: { indicatorId: true, value: true, deleted: true },
     });
 
@@ -86,7 +92,7 @@ export class KumiteService {
       const indicatorsIds = res.map(({ indicatorId }) => indicatorId);
 
       const indicators = await this.prisma.indicator.findMany({
-        where: { id: { in: indicatorsIds } },
+        where: { id: { in: indicatorsIds }, owner },
         select: {
           id: true,
           code: true,
@@ -116,23 +122,23 @@ export class KumiteService {
 
   async evaluate(id: number, evaluateKumiteDto: EvaluateKumiteDto) {
     return await this.prisma.$transaction(async (prisma) => {
-      const { indicators, evaluation, ...rest } = evaluateKumiteDto;
+      const { indicators, evaluation, userId, ...rest } = evaluateKumiteDto;
 
       if (evaluation) {
         await prisma.kumite.update({
-          where: { id, deleted: false },
+          where: { id, deleted: false, owner: userId },
           data: { evaluation },
         });
       } else {
-        const res = await this.prisma.kumite.update({
-          where: { id, deleted: false },
+        const res = await prisma.kumite.update({
+          where: { id, deleted: false, owner: userId },
           data: rest,
         });
 
         if (res) {
           const indicatorsOnKumiteIds = await prisma.indicatorOnKumite.findMany(
             {
-              where: { kumiteId: id, deleted: false },
+              where: { kumiteId: id, deleted: false, owner: userId },
               select: { id: true, indicatorId: true, kumiteId: true },
             },
           );
@@ -152,6 +158,7 @@ export class KumiteService {
           for (const indicator of cleanedIndicators) {
             await prisma.indicatorOnKumite.update({
               where: {
+                owner: userId,
                 id: parsedIndicatorOnKumite[
                   indicator.id.toString() + id.toString()
                 ],
@@ -172,23 +179,29 @@ export class KumiteService {
   async update(id: number, updateKumiteDto: UpdateKumiteDto) {
     return await this.prisma.$transaction(async (prisma) => {
       // This is for the unused variables warning
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { indicators, compActivityId, selectedKaratecaId, ...rest } =
-        updateKumiteDto;
+      const {
+        indicators,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        compActivityId,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        selectedKaratecaId,
+        userId: owner,
+        ...rest
+      } = updateKumiteDto;
 
       const res = await prisma.kumite.update({
-        where: { id, deleted: false },
+        where: { id, deleted: false, owner },
         data: rest,
       });
 
       if (res) {
         await prisma.indicatorOnKumite.updateMany({
-          where: { indicatorId: { notIn: indicators }, kumiteId: id },
+          where: { indicatorId: { notIn: indicators }, kumiteId: id, owner },
           data: { deleted: true },
         });
 
         const existingIndicatorsIds = await prisma.indicatorOnKumite.findMany({
-          where: { kumiteId: id, deleted: false },
+          where: { kumiteId: id, deleted: false, owner },
           select: { indicatorId: true },
         });
 
@@ -201,6 +214,7 @@ export class KumiteService {
           .map((indicator) => ({
             kumiteId: id,
             indicatorId: indicator,
+            owner,
           }));
 
         if (newIndicators.length > 0) {
@@ -212,15 +226,16 @@ export class KumiteService {
     });
   }
 
-  async remove(ids: number[]) {
+  async remove(deleteKumiteDto: DeleteKumiteDto) {
+    const { ids, userId } = deleteKumiteDto;
     const res = await this.prisma.kumite.updateMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, owner: userId },
       data: { deleted: true },
     });
 
     if (res?.count > 0) {
       await this.prisma.indicatorOnKumite.updateMany({
-        where: { kumiteId: { in: ids } },
+        where: { kumiteId: { in: ids }, owner: userId },
         data: { deleted: true },
       });
     }
