@@ -29,11 +29,16 @@ export class KaratecaService {
   }
 
   async update(id: number, updateKaratecaDto: UpdateKaratecaDto) {
-    const { userId, filePath, ...rest } = updateKaratecaDto;
+    const { userId, filePath, fileChanged, ...rest } = updateKaratecaDto;
+
+    const data = { ...rest };
+
+    if (!filePath && Boolean(fileChanged)) data['pic'] = null;
+    else if (filePath) data['pic'] = filePath;
 
     return await this.prisma.karateca.update({
       where: { id, deleted: false, owner: userId },
-      data: { ...rest, pic: filePath },
+      data,
     });
   }
 
