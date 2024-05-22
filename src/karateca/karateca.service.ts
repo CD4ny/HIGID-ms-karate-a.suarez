@@ -10,9 +10,9 @@ export class KaratecaService {
   constructor(private prisma: PrismaService) {}
 
   async create(createKaratecaDto: CreateKaratecaDto) {
-    const { userId, ...rest } = createKaratecaDto;
+    const { userId, filePath: pic, ...rest } = createKaratecaDto;
     return await this.prisma.karateca.create({
-      data: { ...rest, owner: userId },
+      data: { ...rest, owner: userId, pic },
     });
   }
 
@@ -29,10 +29,11 @@ export class KaratecaService {
   }
 
   async update(id: number, updateKaratecaDto: UpdateKaratecaDto) {
-    const { userId, ...rest } = updateKaratecaDto;
+    const { userId, filePath, ...rest } = updateKaratecaDto;
+
     return await this.prisma.karateca.update({
       where: { id, deleted: false, owner: userId },
-      data: rest,
+      data: { ...rest, pic: filePath },
     });
   }
 

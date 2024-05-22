@@ -30,9 +30,9 @@ model Karateca {
   name                               String
   lastName                           String
   sex                                String
-  weight                             Float
+  weight                             String
   category                           String
-  file                               String?
+  pic                                String?
   owner                              String
   deleted                            Boolean                              @default(false)
   // Relations
