@@ -33,7 +33,7 @@ export class KaratecaService {
 
     const data = { ...rest };
 
-    if (!filePath && Boolean(fileChanged)) data['pic'] = null;
+    if (!filePath && fileChanged === 'true') data['pic'] = null;
     else if (filePath) data['pic'] = filePath;
 
     return await this.prisma.karateca.update({

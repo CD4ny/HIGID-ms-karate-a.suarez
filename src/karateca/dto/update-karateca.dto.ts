@@ -6,5 +6,5 @@ import { IsOptional, IsString } from 'class-validator';
 export class UpdateKaratecaDto extends PartialType(CreateKaratecaDto) {
   @IsString()
   @IsOptional()
-  fileChanged: boolean;
+  fileChanged: string;
 }
