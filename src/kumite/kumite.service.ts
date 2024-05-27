@@ -11,15 +11,21 @@ export class KumiteService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createKumiteDto: CreateKumiteDto) {
-    const { indicators, gi, compActivityId, selectedKaratecaId, userId } =
-      createKumiteDto;
+    const {
+      indicators,
+      filePath,
+      gi,
+      compActivityId,
+      selectedKaratecaId,
+      userId,
+    } = createKumiteDto;
 
     return await this.prisma.$transaction(async (prisma) => {
       const { id: compActKaratId } =
         await prisma.competitiveActivityKarateca_Kumite.findFirst({
           where: {
-            activityId: compActivityId,
-            karatecaId: selectedKaratecaId,
+            activityId: parseInt(compActivityId),
+            karatecaId: parseInt(selectedKaratecaId),
             owner: userId,
           },
         });
@@ -29,11 +35,16 @@ export class KumiteService {
           gi,
           owner: userId,
           comp_Karat_Id: compActKaratId,
+          video: filePath,
         },
       });
 
+      const parsedIndicators = indicators
+        .split(',')
+        .map((indicator) => parseInt(indicator));
+
       await prisma.indicatorOnKumite.createMany({
-        data: indicators.map((indicator) => ({
+        data: parsedIndicators.map((indicator) => ({
           kumiteId,
           indicatorId: indicator,
           owner: userId,
@@ -189,6 +200,10 @@ export class KumiteService {
         ...rest
       } = updateKumiteDto;
 
+      const parsedIndicators = indicators
+        .split(',')
+        .map((indicator) => parseInt(indicator));
+
       const res = await prisma.kumite.update({
         where: { id, deleted: false, owner },
         data: rest,
@@ -196,7 +211,11 @@ export class KumiteService {
 
       if (res) {
         await prisma.indicatorOnKumite.updateMany({
-          where: { indicatorId: { notIn: indicators }, kumiteId: id, owner },
+          where: {
+            indicatorId: { notIn: parsedIndicators },
+            kumiteId: id,
+            owner,
+          },
           data: { deleted: true },
         });
 
@@ -209,7 +228,7 @@ export class KumiteService {
           existingIndicatorsIds.map(({ indicatorId }) => indicatorId),
         );
 
-        const newIndicators = indicators
+        const newIndicators = parsedIndicators
           .filter((indicator) => !existingIndicatorsSet.has(indicator))
           .map((indicator) => ({
             kumiteId: id,

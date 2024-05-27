@@ -1,19 +1,24 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { AppDto } from 'src/app.dto';
 
 export class CreateKumiteDto extends PartialType(AppDto) {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  compActivityId: number;
-  @IsNumber()
+  compActivityId: string;
+
+  @IsString()
   @IsNotEmpty()
-  selectedKaratecaId: number;
+  selectedKaratecaId: string;
 
   @IsString()
   @IsNotEmpty()
   gi: string;
 
-  @IsNumber({}, { each: true })
-  indicators: number[];
+  @IsString()
+  indicators: string;
+
+  @IsString()
+  @IsOptional()
+  filePath: string;
 }
