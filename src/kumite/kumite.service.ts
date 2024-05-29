@@ -197,8 +197,15 @@ export class KumiteService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         selectedKaratecaId,
         userId: owner,
+        filePath,
+        fileChanged,
         ...rest
       } = updateKumiteDto;
+
+      const data = { ...rest };
+
+      if (!filePath && fileChanged === 'true') data['video'] = null;
+      else if (filePath) data['video'] = filePath;
 
       const parsedIndicators = indicators
         .split(',')
@@ -206,7 +213,7 @@ export class KumiteService {
 
       const res = await prisma.kumite.update({
         where: { id, deleted: false, owner },
-        data: rest,
+        data,
       });
 
       if (res) {
