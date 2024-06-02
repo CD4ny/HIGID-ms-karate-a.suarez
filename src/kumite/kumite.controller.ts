@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   HttpStatus,
   HttpException,
+  Query,
 } from '@nestjs/common';
 import { KumiteService } from './kumite.service';
 import { CreateKumiteDto } from './dto/create-kumite.dto';
@@ -16,6 +17,7 @@ import { UpdateKumiteDto } from './dto/update-kumite.dto';
 import { EvaluateKumiteDto } from './dto/evaluate-kumite.dto';
 import { AppDto } from 'src/app.dto';
 import { DeleteKumiteDto } from './dto/delete-kumite.dto';
+import { GetKumiteQueryParamsDto } from './dto/get-kumite-queryparams.dto';
 
 @Controller('kumite')
 export class KumiteController {
@@ -37,16 +39,38 @@ export class KumiteController {
     );
   }
 
-  @Get(':activityId/:karatecaId')
-  async findAll(
-    @Param('activityId', ParseIntPipe) activityId: number,
-    @Param('karatecaId', ParseIntPipe) karatecaId: number,
+  @Get()
+  async findKumites(
+    @Query() query: GetKumiteQueryParamsDto,
     @Body() body: AppDto,
   ) {
-    return await this.kumiteService.findAll(
-      activityId,
-      karatecaId,
-      body.userId,
+    const { compAct: qCompAct, karateca: qKarateca, kumite: qKumite } = query;
+    const { userId } = body;
+    const activityId = qCompAct && parseInt(qCompAct);
+    const karatecaId = qKarateca && parseInt(qKarateca);
+    const kumite = qKumite && parseInt(qKumite);
+
+    if (activityId || karatecaId) {
+      return await this.kumiteService.findAll({
+        activityId,
+        karatecaId,
+        owner: userId,
+      });
+    }
+
+    if (kumite) {
+      const res = await this.kumiteService.findOne(kumite, userId);
+
+      if (!res) {
+        throw new HttpException('Kumite not found', HttpStatus.NOT_FOUND);
+      }
+
+      return res;
+    }
+
+    throw new HttpException(
+      'Must provide correct parameters',
+      HttpStatus.BAD_REQUEST,
     );
   }
 

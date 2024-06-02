@@ -53,19 +53,22 @@ export class KumiteService {
     });
   }
 
-  async findAll(activityId, karatecaId, owner: string) {
-    const { id: compActKaratId } =
-      await this.prisma.competitiveActivityKarateca_Kumite.findFirst({
+  async findAll({ activityId, karatecaId, owner }) {
+    const compActKarats =
+      await this.prisma.competitiveActivityKarateca_Kumite.findMany({
         where: {
           activityId,
           karatecaId,
           owner,
         },
+        select: { id: true },
       });
+
+    const mappedCompActKarats = compActKarats.map((item) => item.id);
 
     return await this.prisma.kumite.findMany({
       where: {
-        comp_Karat_Id: compActKaratId,
+        comp_Karat_Id: { in: mappedCompActKarats },
         deleted: false,
         owner,
       },
