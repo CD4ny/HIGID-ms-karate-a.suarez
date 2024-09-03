@@ -16,19 +16,6 @@ class Indicator {
 
   @IsString()
   value: string;
-}
-
-export class EvaluateKumiteDto extends PartialType(AppDto) {
-  @IsString()
-  @IsNotEmpty()
-  @IsOptional()
-  evaluation: string;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => Indicator)
-  @IsOptional()
-  indicators: Indicator[];
 
   @IsString()
   @IsNotEmpty()
@@ -84,4 +71,17 @@ export class EvaluateKumiteDto extends PartialType(AppDto) {
   @IsNotEmpty()
   @IsOptional()
   penalties: string;
+}
+
+export class EvaluateKumiteDto extends PartialType(AppDto) {
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  evaluation: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Indicator)
+  @IsOptional()
+  indicators: Indicator[];
 }

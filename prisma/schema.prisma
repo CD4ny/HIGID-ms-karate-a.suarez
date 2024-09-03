@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,9 +13,8 @@ model Indicator {
   name              String
   type              String
   actionType        String
-  owner             String
   deleted           Boolean             @default(false)
-  // Relations
+  owner             String
   IndicatorOnKumite IndicatorOnKumite[]
 }
 
@@ -32,10 +25,9 @@ model Karateca {
   sex                                String
   weight                             String
   category                           String
-  pic                                String?
-  owner                              String
   deleted                            Boolean                              @default(false)
-  // Relations
+  owner                              String
+  pic                                String?
   CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite[]
 }
 
@@ -45,55 +37,52 @@ model CompetitiveActivity {
   type                               String
   startDate                          DateTime?
   endDate                            DateTime?
-  owner                              String
   deleted                            Boolean                              @default(false)
-  // Relations
+  owner                              String
   CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite[]
 }
 
 model CompetitiveActivityKarateca_Kumite {
   id                  Int                 @id @default(autoincrement())
-  owner               String
   deleted             Boolean             @default(false)
-  karateca            Karateca            @relation(fields: [karatecaId], references: [id])
   karatecaId          Int
-  competitiveActivity CompetitiveActivity @relation(fields: [activityId], references: [id])
   activityId          Int
+  owner               String
+  competitiveActivity CompetitiveActivity @relation(fields: [activityId], references: [id])
+  karateca            Karateca            @relation(fields: [karatecaId], references: [id])
   Kumite              Kumite[]
 }
 
 model Kumite {
   id                                 Int                                @id @default(autoincrement())
   gi                                 String
-  evaluation                         String?
-  kumiteType                         String?
-  distance                           String?
-  sequenceType                       String?
-  strikeZones                        String?
-  partialTimes                       String?
-  levelOfPreparation                 String?
-  motorSequence                      String?
-  kumiteEnding                       String?
-  informalWarnings                   String?
-  officialWarnings                   String?
-  penalties                          String?
-  video                              String?
-  owner                              String
   deleted                            Boolean                            @default(false)
-  // Relations
+  comp_Karat_Id                      Int
+  owner                              String
+  video                              String?
+  evaluation                         String?
   IndicatorOnKumite                  IndicatorOnKumite[]
   CompetitiveActivityKarateca_Kumite CompetitiveActivityKarateca_Kumite @relation(fields: [comp_Karat_Id], references: [id])
-  comp_Karat_Id                      Int
 }
 
 model IndicatorOnKumite {
-  id          Int       @id @default(autoincrement())
-  value       String?
-  owner       String
-  deleted     Boolean   @default(false)
-  // Relations
-  indicator   Indicator @relation(fields: [indicatorId], references: [id])
-  indicatorId Int
-  kumite      Kumite    @relation(fields: [kumiteId], references: [id])
-  kumiteId    Int
+  id                 Int       @id @default(autoincrement())
+  value              String?
+  deleted            Boolean   @default(false)
+  indicatorId        Int
+  kumiteId           Int
+  owner              String
+  distance           String?
+  informalWarnings   String?
+  kumiteEnding       String?
+  kumiteType         String?
+  levelOfPreparation String?
+  motorSequence      String?
+  officialWarnings   String?
+  partialTimes       String?
+  penalties          String?
+  sequenceType       String?
+  strikeZones        String?
+  indicator          Indicator @relation(fields: [indicatorId], references: [id])
+  kumite             Kumite    @relation(fields: [kumiteId], references: [id])
 }
